@@ -1,0 +1,10 @@
+{
+  "name": "hotel-bot-menu-api",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "satori": "^0.10.9",
+    "@resvg/resvg-js": "^2.6.0",
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}
