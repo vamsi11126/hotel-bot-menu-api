@@ -1,28 +1,50 @@
+import fs from "fs";
+import path from "path";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 
+const fontPath = path.resolve("./fonts/OpenSans-Regular.ttf");
+const fontData = fs.readFileSync(fontPath);
+
 export async function POST(req) {
-  const data = await req.json();
+  let body = {};
+
+  try {
+    body = await req.json();
+  } catch (e) {
+    return new Response("Invalid JSON", { status: 400 });
+  }
+
+  const { userName, items, subtotal, tax, total } = body;
 
   const svg = await satori(
     {
       type: "div",
       props: {
-        style: { padding: "20px", fontSize: "20px" },
+        style: {
+          padding: "30px",
+          fontSize: "22px",
+          fontFamily: "OpenSans",
+        },
         children: [
           {
             type: "h1",
-            props: { children: "Hotel Paradise - Bill Receipt" },
+            props: {
+              style: { fontSize: "32px", marginBottom: "20px" },
+              children: "Hotel Paradise - Bill Receipt",
+            },
           },
           {
             type: "p",
-            props: { children: `Customer: ${data.userName}` },
+            props: {
+              children: `Customer: ${userName}`,
+            },
           },
           {
-            type: "ul",
+            type: "div",
             props: {
-              children: data.items.map((item) => ({
-                type: "li",
+              children: items.map((item) => ({
+                type: "p",
                 props: {
                   children: `${item.item_name} — ${item.quantity} × ₹${item.price} = ₹${item.total}`,
                 },
@@ -31,29 +53,38 @@ export async function POST(req) {
           },
           {
             type: "p",
-            props: { children: `Subtotal: ₹${data.subtotal}` },
+            props: { children: `Subtotal: ₹${subtotal}` },
           },
           {
             type: "p",
-            props: { children: `GST 5%: ₹${data.tax}` },
+            props: { children: `GST (5%): ₹${tax}` },
           },
           {
             type: "h2",
-            props: { children: `Total: ₹${data.total}` },
+            props: { children: `Total: ₹${total}` },
           },
         ],
       },
     },
     {
       width: 800,
-      height: 1000,
-      fonts: [],
+      height: 1100,
+      fonts: [
+        {
+          name: "OpenSans",
+          data: fontData,
+          weight: 400,
+          style: "normal",
+        },
+      ],
     }
   );
 
   const png = new Resvg(svg).render().asPng();
 
   return new Response(png, {
-    headers: { "Content-Type": "image/png" },
+    headers: {
+      "Content-Type": "image/png",
+    },
   });
 }
