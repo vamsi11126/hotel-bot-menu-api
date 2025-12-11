@@ -11,7 +11,7 @@ export async function POST(req) {
 
   try {
     body = await req.json();
-  } catch (e) {
+  } catch (err) {
     return new Response("Invalid JSON", { status: 400 });
   }
 
@@ -22,27 +22,52 @@ export async function POST(req) {
       type: "div",
       props: {
         style: {
-          padding: "30px",
-          fontSize: "22px",
+          padding: "40px",
           fontFamily: "OpenSans",
+          display: "flex",
+          flexDirection: "column",
+          width: "800px",
         },
         children: [
           {
-            type: "h1",
+            type: "div",
             props: {
-              style: { fontSize: "32px", marginBottom: "20px" },
-              children: "Hotel Paradise - Bill Receipt",
+              style: {
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "20px",
+              },
+              children: [
+                {
+                  type: "h1",
+                  props: {
+                    style: {
+                      fontSize: "32px",
+                      margin: 0,
+                      padding: 0,
+                    },
+                    children: "Hotel Paradise - Bill Receipt",
+                  },
+                },
+                {
+                  type: "p",
+                  props: {
+                    children: `Customer: ${userName}`,
+                    style: { marginTop: "10px" },
+                  },
+                },
+              ],
             },
           },
-          {
-            type: "p",
-            props: {
-              children: `Customer: ${userName}`,
-            },
-          },
+
           {
             type: "div",
             props: {
+              style: {
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "20px",
+              },
               children: items.map((item) => ({
                 type: "p",
                 props: {
@@ -51,17 +76,33 @@ export async function POST(req) {
               })),
             },
           },
+
           {
-            type: "p",
-            props: { children: `Subtotal: ₹${subtotal}` },
-          },
-          {
-            type: "p",
-            props: { children: `GST (5%): ₹${tax}` },
-          },
-          {
-            type: "h2",
-            props: { children: `Total: ₹${total}` },
+            type: "div",
+            props: {
+              style: {
+                display: "flex",
+                flexDirection: "column",
+                marginTop: "20px",
+              },
+              children: [
+                {
+                  type: "p",
+                  props: { children: `Subtotal: ₹${subtotal}` },
+                },
+                {
+                  type: "p",
+                  props: { children: `GST (5%): ₹${tax}` },
+                },
+                {
+                  type: "h2",
+                  props: {
+                    children: `Total: ₹${total}`,
+                    style: { marginTop: "10px" },
+                  },
+                },
+              ],
+            },
           },
         ],
       },
@@ -74,7 +115,6 @@ export async function POST(req) {
           name: "OpenSans",
           data: fontData,
           weight: 400,
-          style: "normal",
         },
       ],
     }
