@@ -3,7 +3,7 @@ import path from "path";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
 
-const fontPath = path.resolve("./fonts/OpenSans-Regular.ttf");
+const fontPath = path.resolve("./fonts/OpenSans-Bold.ttf");
 const fontData = fs.readFileSync(fontPath);
 
 export async function POST(req) {
