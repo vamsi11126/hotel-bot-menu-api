@@ -9,13 +9,52 @@ const fontData = fs.readFileSync(fontPath);
 export async function POST(req) {
   let body = {};
 
+  // Parse JSON safely
   try {
     body = await req.json();
   } catch (err) {
     return new Response("Invalid JSON", { status: 400 });
   }
 
-  const { userName, items, subtotal, tax, total } = body;
+  let { userName, items, subtotal, tax, total } = body;
+
+  // ---------------------------
+  // FIX 1 — Convert items into an array
+  // ---------------------------
+
+  // If items is a string (common when coming from n8n)
+  if (typeof items === "string") {
+    try {
+      items = JSON.parse(items);
+    } catch (err) {
+      console.error("Failed JSON.parse for items:", items);
+      return new Response("Invalid items format", { status: 400 });
+    }
+  }
+
+  // If single object → turn into array
+  if (!Array.isArray(items)) {
+    items = [items];
+  }
+
+  // If empty array → invalid
+  if (!items.length) {
+    return new Response("Items array is empty", { status: 400 });
+  }
+
+  // ---------------------------
+  // FIX 2 — Normalize item fields
+  // ---------------------------
+  const normalizedItems = items.map((item) => ({
+    name: item.itemName || item.item_name || "Unknown Item",
+    qty: Number(item.quantity) || 0,
+    price: Number(item.itemPrice || item.price) || 0,
+    total: Number(item.total) || (Number(item.price) * Number(item.quantity)),
+  }));
+
+  // ---------------------------
+  // SVG Generation using Satori
+  // ---------------------------
 
   const svg = await satori(
     {
@@ -30,61 +69,39 @@ export async function POST(req) {
         },
         children: [
           {
-            type: "div",
+            type: "h1",
             props: {
-              style: {
-                display: "flex",
-                flexDirection: "column",
-                marginBottom: "20px",
-              },
-              children: [
-                {
-                  type: "h1",
-                  props: {
-                    style: {
-                      fontSize: "32px",
-                      margin: 0,
-                      padding: 0,
-                    },
-                    children: "Hotel Paradise - Bill Receipt",
-                  },
-                },
-                {
-                  type: "p",
-                  props: {
-                    children: `Customer: ${userName}`,
-                    style: { marginTop: "10px" },
-                  },
-                },
-              ],
+              style: { fontSize: "32px", margin: 0 },
+              children: "Hotel Paradise - Bill Receipt",
+            },
+          },
+          {
+            type: "p",
+            props: {
+              style: { marginTop: "10px" },
+              children: `Customer: ${userName}`,
             },
           },
 
+          // Items list
           {
             type: "div",
             props: {
-              style: {
-                display: "flex",
-                flexDirection: "column",
-                marginBottom: "20px",
-              },
-              children: items.map((item) => ({
+              style: { display: "flex", flexDirection: "column", marginTop: "20px" },
+              children: normalizedItems.map((item) => ({
                 type: "p",
                 props: {
-                  children: `${item.item_name} — ${item.quantity} × ₹${item.price} = ₹${item.total}`,
+                  children: `${item.name} — ${item.qty} × ₹${item.price} = ₹${item.total}`,
                 },
               })),
             },
           },
 
+          // Totals section
           {
             type: "div",
             props: {
-              style: {
-                display: "flex",
-                flexDirection: "column",
-                marginTop: "20px",
-              },
+              style: { marginTop: "20px" },
               children: [
                 {
                   type: "p",
@@ -97,8 +114,8 @@ export async function POST(req) {
                 {
                   type: "h2",
                   props: {
-                    children: `Total: ₹${total}`,
                     style: { marginTop: "10px" },
+                    children: `Total: ₹${total}`,
                   },
                 },
               ],
@@ -109,7 +126,7 @@ export async function POST(req) {
     },
     {
       width: 800,
-      height: 1100,
+      height: 1000,
       fonts: [
         {
           name: "OpenSans",
@@ -123,8 +140,6 @@ export async function POST(req) {
   const png = new Resvg(svg).render().asPng();
 
   return new Response(png, {
-    headers: {
-      "Content-Type": "image/png",
-    },
+    headers: { "Content-Type": "image/png" },
   });
 }
