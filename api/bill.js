@@ -7,31 +7,42 @@ import { put } from "@vercel/blob";
 const fontPath = path.resolve("./fonts/OpenSans-Bold.ttf");
 const fontData = fs.readFileSync(fontPath);
 
-export async function POST(req) {
+// Correct Vercel Serverless Function format (pages/api)
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Only POST allowed" });
+  }
+
   let body;
 
-  // Parse JSON
+  // Parse JSON body (vercel sends req.body as string)
   try {
-    body = await req.json();
+    body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
   } catch (err) {
-    return new Response("Invalid JSON", { status: 400 });
+    return res.status(400).json({ error: "Invalid JSON" });
   }
 
   let { userName, items, subtotal, tax, total } = body;
 
-  // Convert items from string if needed
+  // ---------------------------
+  // FIX 1 — Convert items into array
+  // ---------------------------
+
+  // If items is a string coming from n8n
   if (typeof items === "string") {
     try {
       items = JSON.parse(items);
     } catch (err) {
-      return new Response("Invalid items format", { status: 400 });
+      return res.status(400).json({ error: "Invalid items format" });
     }
   }
 
   if (!Array.isArray(items)) items = [items];
-  if (!items.length) return new Response("Items array is empty", { status: 400 });
+  if (!items.length) return res.status(400).json({ error: "Items array is empty" });
 
-  // Normalize fields
+  // ---------------------------
+  // FIX 2 — Normalize item fields
+  // ---------------------------
   const normalizedItems = items.map((item) => ({
     name: item.itemName || item.item_name || "Unknown Item",
     qty: Number(item.quantity) || 0,
@@ -39,7 +50,9 @@ export async function POST(req) {
     total: Number(item.total) || (Number(item.quantity) * Number(item.price)),
   }));
 
-  // Generate SVG
+  // ---------------------------
+  // FIX 3 — Generate SVG (All divs with >1 children must be flex)
+  // ---------------------------
   const svg = await satori(
     {
       type: "div",
@@ -52,25 +65,43 @@ export async function POST(req) {
           width: "800px",
         },
         children: [
-          {
-            type: "h1",
-            props: {
-              style: { fontSize: "32px", margin: 0 },
-              children: "Hotel Paradise - Bill Receipt",
-            },
-          },
-          {
-            type: "p",
-            props: {
-              style: { marginTop: "10px" },
-              children: `Customer: ${userName}`,
-            },
-          },
-
+          // Header
           {
             type: "div",
             props: {
-              style: { marginTop: "20px" },
+              style: {
+                display: "flex",
+                flexDirection: "column",
+                marginBottom: "20px",
+              },
+              children: [
+                {
+                  type: "h1",
+                  props: {
+                    style: { fontSize: "32px", margin: 0 },
+                    children: "Hotel Paradise - Bill Receipt",
+                  },
+                },
+                {
+                  type: "p",
+                  props: {
+                    style: { marginTop: "10px" },
+                    children: `Customer: ${userName}`,
+                  },
+                },
+              ],
+            },
+          },
+
+          // Item List
+          {
+            type: "div",
+            props: {
+              style: {
+                marginTop: "20px",
+                display: "flex",
+                flexDirection: "column",
+              },
               children: normalizedItems.map((item) => ({
                 type: "p",
                 props: {
@@ -80,10 +111,15 @@ export async function POST(req) {
             },
           },
 
+          // Totals Section
           {
             type: "div",
             props: {
-              style: { marginTop: "20px" },
+              style: {
+                marginTop: "20px",
+                display: "flex",
+                flexDirection: "column",
+              },
               children: [
                 { type: "p", props: { children: `Subtotal: ₹${subtotal}` } },
                 { type: "p", props: { children: `GST (5%): ₹${tax}` } },
@@ -102,7 +138,7 @@ export async function POST(req) {
     },
     {
       width: 800,
-      height: 1000,
+      height: 1100,
       fonts: [
         {
           name: "OpenSans",
@@ -116,7 +152,9 @@ export async function POST(req) {
   // Render PNG
   const png = new Resvg(svg).render().asPng();
 
-  // Upload to Vercel Blob Storage
+  // ---------------------------
+  // FIX 4 — Upload PNG to Vercel Blob Storage
+  // ---------------------------
   const fileName = `bill-${Date.now()}.png`;
 
   const upload = await put(fileName, png, {
@@ -124,8 +162,10 @@ export async function POST(req) {
     contentType: "image/png",
   });
 
-  // upload.url → PUBLIC URL FOR TWILIO
-  return Response.json({
+  // ---------------------------
+  // FIX 5 — Return PUBLIC URL as JSON
+  // ---------------------------
+  return res.status(200).json({
     success: true,
     url: upload.url,
   });
