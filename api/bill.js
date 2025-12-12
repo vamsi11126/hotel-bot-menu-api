@@ -2,14 +2,15 @@ import fs from "fs";
 import path from "path";
 import satori from "satori";
 import { Resvg } from "@resvg/resvg-js";
+import { put } from "@vercel/blob";
 
 const fontPath = path.resolve("./fonts/OpenSans-Bold.ttf");
 const fontData = fs.readFileSync(fontPath);
 
 export async function POST(req) {
-  let body = {};
+  let body;
 
-  // Parse JSON safely
+  // Parse JSON
   try {
     body = await req.json();
   } catch (err) {
@@ -18,44 +19,27 @@ export async function POST(req) {
 
   let { userName, items, subtotal, tax, total } = body;
 
-  // ---------------------------
-  // FIX 1 — Convert items into an array
-  // ---------------------------
-
-  // If items is a string (common when coming from n8n)
+  // Convert items from string if needed
   if (typeof items === "string") {
     try {
       items = JSON.parse(items);
     } catch (err) {
-      console.error("Failed JSON.parse for items:", items);
       return new Response("Invalid items format", { status: 400 });
     }
   }
 
-  // If single object → turn into array
-  if (!Array.isArray(items)) {
-    items = [items];
-  }
+  if (!Array.isArray(items)) items = [items];
+  if (!items.length) return new Response("Items array is empty", { status: 400 });
 
-  // If empty array → invalid
-  if (!items.length) {
-    return new Response("Items array is empty", { status: 400 });
-  }
-
-  // ---------------------------
-  // FIX 2 — Normalize item fields
-  // ---------------------------
+  // Normalize fields
   const normalizedItems = items.map((item) => ({
     name: item.itemName || item.item_name || "Unknown Item",
     qty: Number(item.quantity) || 0,
     price: Number(item.itemPrice || item.price) || 0,
-    total: Number(item.total) || (Number(item.price) * Number(item.quantity)),
+    total: Number(item.total) || (Number(item.quantity) * Number(item.price)),
   }));
 
-  // ---------------------------
-  // SVG Generation using Satori
-  // ---------------------------
-
+  // Generate SVG
   const svg = await satori(
     {
       type: "div",
@@ -83,11 +67,10 @@ export async function POST(req) {
             },
           },
 
-          // Items list
           {
             type: "div",
             props: {
-              style: { display: "flex", flexDirection: "column", marginTop: "20px" },
+              style: { marginTop: "20px" },
               children: normalizedItems.map((item) => ({
                 type: "p",
                 props: {
@@ -97,20 +80,13 @@ export async function POST(req) {
             },
           },
 
-          // Totals section
           {
             type: "div",
             props: {
               style: { marginTop: "20px" },
               children: [
-                {
-                  type: "p",
-                  props: { children: `Subtotal: ₹${subtotal}` },
-                },
-                {
-                  type: "p",
-                  props: { children: `GST (5%): ₹${tax}` },
-                },
+                { type: "p", props: { children: `Subtotal: ₹${subtotal}` } },
+                { type: "p", props: { children: `GST (5%): ₹${tax}` } },
                 {
                   type: "h2",
                   props: {
@@ -137,9 +113,20 @@ export async function POST(req) {
     }
   );
 
+  // Render PNG
   const png = new Resvg(svg).render().asPng();
 
-  return new Response(png, {
-    headers: { "Content-Type": "image/png" },
+  // Upload to Vercel Blob Storage
+  const fileName = `bill-${Date.now()}.png`;
+
+  const upload = await put(fileName, png, {
+    access: "public",
+    contentType: "image/png",
+  });
+
+  // upload.url → PUBLIC URL FOR TWILIO
+  return Response.json({
+    success: true,
+    url: upload.url,
   });
 }

@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "satori": "^0.10.9",
     "@resvg/resvg-js": "^2.6.0",
-    "@supabase/supabase-js": "^2.39.0"
+    "@supabase/supabase-js": "^2.39.0",
+    "@vercel/blob": "^2.0.0",
+    "satori": "^0.10.9"
   }
 }
