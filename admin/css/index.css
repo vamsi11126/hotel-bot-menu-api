@@ -1,0 +1,87 @@
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+.navbar{
+    background-color: #0c020266;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+}
+.navbar h1{
+    color: white;
+    padding: 14px 20px;
+    font-weight: bold;
+    font-size: 26px;
+}
+.navbar ul{
+    list-style-type: none;
+    display: flex;
+    flex-direction: row;
+    margin-right: 20px;
+}
+.navbar ul li a{
+    color: white;
+    padding: 14px 20px;
+    text-decoration: none;
+}
+.navbar ul li a:hover{
+    background-color: #ddd;
+    color: black;
+}
+.hero-header{
+    text-align: center;
+    padding: 50px;
+    background-color: #f4f4f4;
+}
+.sts{
+    padding: 20px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+}
+.hero-content{
+    font-size: 22px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    
+}
+.ord-cnt,.itm-cnt,.ord-incomplete{
+    background-color: #e2e2e2;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    align-items: center;
+    margin-left:  0px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f4f4f4;
+}
+.navigators{
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    font-size: 20px;
+    padding: 20px;
+}
+.card{
+    background-color: #e2e2e2;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    align-items: center;
+    margin-left:  0px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #f4f4f4;
+}   
