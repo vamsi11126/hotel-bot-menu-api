@@ -1,0 +1,2368 @@
+{
+  "name": "Hotel Bot - Flow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "whatsapp",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "6f42db43-237f-441f-99ff-64092675dc71",
+      "name": "Webhook",
+      "webhookId": "5b1455c7-87ec-4b9f-8f53-ae3af6342594"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Ensure we read Twilio payload correctly\nconst payload = $input.item.json.body || $input.item.json;\n\n// Extract message\nconst message = payload.Body\n  ? payload.Body.toLowerCase().trim()\n  : '';\n\n// Extract phone number\nconst from = payload.From?.replace('whatsapp:', '') || '';\n\n// Extract username\nlet userName = 'Guest';\ntry {\n  const meta = JSON.parse(payload.ChannelMetadata);\n  userName = meta?.data?.context?.ProfileName || 'Guest';\n} catch (e) {}\n\n// FIX: Only detect EXACT first messages, not messages containing these words\nconst isFirstMessage = ['hi', 'hello', 'start'].includes(message) && message.length <= 10;\n\nreturn {\n  json: {\n    userId: from,\n    userPhone: from,\n    userName,\n    message,\n    isFirstMessage,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2d8d821b-517e-41ad-a100-46705ba207e3",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.isFirstMessage }}",
+                    "rightValue": true,
+                    "operator": {
+                      "type": "boolean",
+                      "operation": "equals"
+                    },
+                    "id": "458942ed-ed2b-4d3e-8717-4941f9c5f4b1"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "firstmessage"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3f25c366-138f-41bb-8ab5-c61a6811efb2",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "menu",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "menu"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "930a6ddb-3d86-4d9a-9532-8ad7ff0db949",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "add:",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=addToCart"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "92757c35-0847-4d87-bf84-6a3fbdf1dc27",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "order",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "order"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fba372cd-a86b-45bf-9df9-4a385c472018",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "starters",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "starters"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3b5cf350-0753-4024-bb62-c48423e3d6c7",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "veg",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "veg"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "5bee9621-45db-4c64-86ee-c7ce73bf5a0b",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "non-veg",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "non-veg"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "df57bc4f-cd63-482c-bb22-e52bfaee7831",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "beverages",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "beverages"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "3fcd9726-f633-4461-935f-93be4150b845",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "cart",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "view cart"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "e61fd4ac-f534-4696-87ed-ff28e8d66959",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "remove:",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "removeItem"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "fab7e6d1-340e-4a9a-85b5-9861f5e709fb",
+                    "leftValue": "={{ $json.message}}",
+                    "rightValue": "clear",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "clearCart"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "faaf465f-c0b0-483e-9d53-51de031962de",
+                    "leftValue": "={{ $json.message }}",
+                    "rightValue": "rate:",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "rateReview"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "68a10ba9-255f-45a9-b4e1-459907f79fd6",
+                    "leftValue": "={{ $json.message }}",
+                    "rightValue": "feedback:",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "feedbackReview"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        528,
+        -32
+      ],
+      "id": "de33ec1b-fdee-44ce-a147-b01d303e9611",
+      "name": "Switch",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "={{ $('Webhook').item.json.body.From }}"
+            },
+            {
+              "name": "Body",
+              "value": "=🍽️ *Welcome to Hotel Paradise!*\n\nHello {{ $json.userName }}! 👋\n\nI'm your digital waiter. Here's what I can help you with:\n\n📋 *menu* — View our menu  \n🛒 *cart* — View your cart  \n📦 *orders* — Track your orders  \n❓ *help* — Get assistance  \n\nWhat would you like to do?\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1296,
+        -560
+      ],
+      "id": "dadda08f-f9ff-41fb-9ad1-8539e8feaf2a",
+      "name": "welcome message",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "=whatsapp:{{ $json.userPhone }}"
+            },
+            {
+              "name": "Body",
+              "value": "=📋 *Our Menu Categories*\n\nReply with:\n\n1️⃣ *starters* — Appetizers  \n2️⃣ *veg* — Vegetarian Dishes  \n3️⃣ *non-veg* — Non-Vegetarian  \n4️⃣ *beverages* — Drinks  \n\nWhich category interests you?\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1312,
+        -320
+      ],
+      "id": "8b378ee0-3cd4-4317-b6f9-1ef49cb250e7",
+      "name": "Show menu category",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "=whatsapp:{{ $json.userPhone }}"
+            },
+            {
+              "name": "Body",
+              "value": "Here is your menu\n\nTo add items into cart reply \nadd: ChickenBiryani - 20\n"
+            },
+            {
+              "name": "MediaUrl",
+              "value": "=https://hotel-bot-menu-ltddlhrav-vamsis-projects-b5c6d838.vercel.app/api/menu?category={{ $('Switch').item.json.message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1488,
+        160
+      ],
+      "id": "8f61b6ea-5a35-4256-9b38-e8de5a70d4dd",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://hotel-bot-menu-ltddlhrav-vamsis-projects-b5c6d838.vercel.app/api/menu?category={{ $json.message }}",
+        "options": {
+          "response": {
+            "response": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1312,
+        160
+      ],
+      "id": "89202594-a7f6-4421-bb33-f73c40499501",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Get input data\nconst inputData = $input.item.json;\n\n// Extract message - try multiple possible locations\nconst message = inputData.body?.Body || inputData.Body || inputData.rawMessage || inputData.message || '';\nconst userId = inputData.userId || inputData.userPhone || '';\nconst userPhone = inputData.userPhone || inputData.userId || '';\nconst userName = inputData.userName || 'Guest';\n\n// If message is empty, return error\nif (!message) {\n  return {\n    json: {\n      error: true,\n      userId: userId,\n      userPhone: userPhone,\n      userName: userName,\n      errorMessage: \"❌ No message received\"\n    }\n  };\n}\n\n// Check if message starts with \"add:\"\nif (!message.toLowerCase().startsWith('add:')) {\n  return {\n    json: {\n      error: true,\n      userId: userId,\n      userPhone: userPhone,\n      userName: userName,\n      errorMessage: \"❌ Message must start with 'add:'\"\n    }\n  };\n}\n\n// Remove \"add:\" prefix and get the items part\nconst itemsText = message.substring(4).trim();\n\nif (!itemsText) {\n  return {\n    json: {\n      error: true,\n      userId: userId,\n      userPhone: userPhone,\n      userName: userName,\n      errorMessage: \"❌ *Invalid Format!*\\n\\nPlease use:\\n*add: Item Name Quantity, Item2 Quantity2*\\n\\n*Examples:*\\n\\n*Single item:*\\nadd: Paneer Tikka 2\\n\\n*Multiple items:*\\nadd: Paneer Tikka 2, Chicken Biryani 1, Mango Lassi 3\"\n    }\n  };\n}\n\n// Split by comma to get individual items\nconst itemParts = itemsText.split(',').map(part => part.trim());\n\nconst parsedItems = [];\nconst errors = [];\n\n// Process each item\nfor (let i = 0; i < itemParts.length; i++) {\n  const part = itemParts[i];\n  \n  if (!part) continue;\n  \n  // Match pattern: \"Item Name Quantity\" or \"Item Name, Quantity\"\n  // This regex captures everything except the last number as item name\n  const itemPattern = /^(.+?)\\s+(\\d+)$/;\n  const match = part.match(itemPattern);\n  \n  if (!match) {\n    errors.push(`\"${part}\" - Invalid format (use: Item Name Quantity)`);\n    continue;\n  }\n  \n  const itemName = match[1].trim();\n  const quantity = parseInt(match[2]);\n  \n  // Validate quantity\n  if (quantity <= 0 || quantity > 20) {\n    errors.push(`\"${itemName}\" - Quantity must be 1-20 (got ${quantity})`);\n    continue;\n  }\n  \n  // Validate item name\n  if (!itemName || itemName.length < 2) {\n    errors.push(`Item name too short: \"${itemName}\"`);\n    continue;\n  }\n  \n  // Add to parsed items\n  parsedItems.push({\n    itemName: itemName,\n    quantity: quantity\n  });\n}\n\n// If no valid items were parsed\nif (parsedItems.length === 0) {\n  let errorMessage = \"❌ *No valid items found!*\\n\\n\";\n  \n  if (errors.length > 0) {\n    errorMessage += \"*Errors:*\\n\";\n    errors.forEach(err => {\n      errorMessage += `• ${err}\\n`;\n    });\n    errorMessage += \"\\n\";\n  }\n  \n  errorMessage += \"*Correct format:*\\n\\n\";\n  errorMessage += \"*Single item:*\\n\";\n  errorMessage += \"add: Paneer Tikka 2\\n\\n\";\n  errorMessage += \"*Multiple items (separated by comma):*\\n\";\n  errorMessage += \"add: Paneer Tikka 2, Chicken Biryani 1, Mango Lassi 3\\n\\n\";\n  errorMessage += \"*Rules:*\\n\";\n  errorMessage += \"• Separate items with comma\\n\";\n  errorMessage += \"• Format: Item Name Quantity\\n\";\n  errorMessage += \"• Quantity: 1-20\";\n  \n  return {\n    json: {\n      error: true,\n      userId: userId,\n      userPhone: userPhone,\n      userName: userName,\n      errorMessage: errorMessage\n    }\n  };\n}\n\n// Success - return all parsed items with warnings if any\nlet successMessage = `✅ *${parsedItems.length} item(s) parsed successfully!*\\n\\n`;\n\nif (errors.length > 0) {\n  successMessage += `⚠️ *${errors.length} item(s) skipped:*\\n`;\n  errors.forEach(err => {\n    successMessage += `• ${err}\\n`;\n  });\n}\n\nreturn {\n  json: {\n    error: false,\n    userId: userId,\n    userPhone: userPhone,\n    userName: userName,\n    items: parsedItems,\n    totalItems: parsedItems.length,\n    hasWarnings: errors.length > 0,\n    warnings: errors,\n    successMessage: successMessage,\n    originalMessage: message\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        -128
+      ],
+      "id": "39a54d79-b1e7-4073-8aed-7fe8639f15de",
+      "name": "Parse Add Command"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "da783746-df3e-4837-a08d-233e4568e0b2",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1552,
+        -144
+      ],
+      "id": "d76337a4-e141-49f2-80bd-0f116e7cd315",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "=whatsapp:{{ $json.userPhone }}"
+            },
+            {
+              "name": "Body",
+              "value": "❌ *Invalid Format!*\n\nPlease use:\n*add: Item Name Quantity, Item2 Quantity2*\n\n*Examples:*\n\n*Single item:*\nadd: Paneer Tikka 2\n\n*Multiple items:*\nadd: Paneer Tikka 2, Chicken Biryani 1, Mango Lassi 3\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1744,
+        -208
+      ],
+      "id": "b02d25fe-f2b8-4fb0-b586-db8424ad888f",
+      "name": "Send Parse Error Message",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "items",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1744,
+        -64
+      ],
+      "id": "84a92e49-b2f3-4f42-8a6b-82d589007d50",
+      "name": "Split Items"
+    },
+    {
+      "parameters": {
+        "url": "=https://pvkfpmzyjagccyriknmp.supabase.co/rest/v1/menu_items",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "=ilike.*{{ $json.items.itemName }}*"
+            },
+            {
+              "name": "select",
+              "value": "id,name,price,category"
+            },
+            {
+              "name": "limit",
+              "value": "1"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2a2ZwbXp5amFnY2N5cmlrbm1wIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTI0OTQ0MSwiZXhwIjoyMDgwODI1NDQxfQ.yRlDvlrlY68GOSaZmyhR0w6RIOBEZTsLS05uWVOddtU"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2a2ZwbXp5amFnY2N5cmlrbm1wIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NTI0OTQ0MSwiZXhwIjoyMDgwODI1NDQxfQ.yRlDvlrlY68GOSaZmyhR0w6RIOBEZTsLS05uWVOddtU"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1952,
+        -64
+      ],
+      "id": "2cc65ab3-10a3-4330-94ed-f07a020a3687",
+      "name": "Find Menu Item in Supabase"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9b2fb52b-61ff-478f-b958-602f56d0729c",
+              "leftValue": "={{ $items(\"Find Menu Item in Supabase\").length }}\n",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2144,
+        -64
+      ],
+      "id": "d9744681-2a6c-4b55-8fe8-f0c549238f77",
+      "name": "Item Found?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "=whatsapp:{{ $('Split Items').item.json.userPhone }}"
+            },
+            {
+              "name": "Body",
+              "value": "=❌ Item not found:\n\"{{ $items('Split Items')[0].json.itemName }}\"\n\nPlease check the spelling and try again.\n\nType *menu* to see available items.\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2384,
+        144
+      ],
+      "id": "1f984b7b-3d47-4e44-9241-7f530ec92ce6",
+      "name": "Item Not Found Error",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7454f195-22bd-4fe5-b081-23a354fe1b3b",
+              "name": "userId",
+              "value": "={{ $('Split Items').item.json.userId }}",
+              "type": "string"
+            },
+            {
+              "id": "3829f345-9e27-44a7-97e8-2f6abb758d8d",
+              "name": "userPhone",
+              "value": "={{ $('Split Items').item.json.userPhone }}",
+              "type": "string"
+            },
+            {
+              "id": "df952da5-60c0-472f-ab71-81f21925e65b",
+              "name": "userName",
+              "value": "={{ $('Split Items').item.json.userName }}",
+              "type": "string"
+            },
+            {
+              "id": "b68162fc-86f5-4cd8-8f11-d366a173a899",
+              "name": "=itemId",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "bb8ca367-7e48-4bd8-89d2-3eeee152512e",
+              "name": "itemName",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "0132e8dc-5678-4573-8eff-e8e9e65bc110",
+              "name": "itemPrice",
+              "value": "={{ $json.price }}",
+              "type": "string"
+            },
+            {
+              "id": "d5844248-7f1a-4076-bcbd-9d79fcab5e0b",
+              "name": "quantity",
+              "value": "={{ $('Split Items').item.json.items.quantity }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2384,
+        -240
+      ],
+      "id": "e37c826d-f821-4311-88c1-e35f411ba2fe",
+      "name": "Prepare Cart Data"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        3072,
+        -240
+      ],
+      "id": "cbdee29f-ba8b-4a29-87cc-fe84616ba821",
+      "name": "Wait for All Items"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const userId = $json.userId;\nconst userPhone = $json.userPhone;\n\nconst items = $json.items || [];\n\nif (!items.length || $json.isEmpty) {\n  return {\n    json: {\n      userId,\n      userPhone,\n      cartMessage: \"🛒 Your cart is empty!\\n\\nType *menu* to start ordering.\"\n    }\n  };\n}\n\n// Safely read numbers (fallback to 0)\nconst subtotal = Number($json.subtotal) || 0;\nconst tax = Number($json.tax) || 0;\nconst total = Number($json.total) || 0;\n\n// Build confirmation message\nlet cartMessage = \"🛒 *Your Cart*\\n\\n\";\n\nitems.forEach((item, index) => {\n  // FIX: Safe name handling\n  const name =\n    item.itemName ||     // Correct for Data Table\n    item.name ||         // Backup\n    item.item_name ||    // Old version support\n    \"Unknown Item\";      // Last fallback\n\n  const qty = Number(item.quantity) || 0;\n  const price = Number(item.price || item.itemPrice) || 0;\n  const totalValue = qty * price;\n\n  cartMessage += `${index + 1}. *${name}*\\n`;\n  cartMessage += `   ${qty} × ₹${price} = ₹${totalValue}\\n\\n`;\n});\n\ncartMessage += `━━━━━━━━━━━━━━━━\\n`;\ncartMessage += `Subtotal: ₹${subtotal.toFixed(2)}\\n`;\ncartMessage += `GST (5%): ₹${tax.toFixed(2)}\\n`;\ncartMessage += `*Total: ₹${total.toFixed(2)}*\\n`;\ncartMessage += `━━━━━━━━━━━━━━━━\\n\\n`;\n\ncartMessage += `*Next options:*\\n`;\ncartMessage += `• Type *order* - Proceed to payment\\n`;\ncartMessage += `• Type *menu* - Add more items\\n`;\ncartMessage += `• Type *clear* - Clear cart\\n`;\ncartMessage += `• Type *remove: item* - Remove an item\\n`;\n\nreturn {\n  json: {\n    userId,\n    userPhone,\n    cartMessage\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3504,
+        -240
+      ],
+      "id": "b8bb0eb7-dfca-48c3-8795-cd5525f71de2",
+      "name": "Format Cart Confirmation"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "=whatsapp:+14155238886"
+            },
+            {
+              "name": "=To",
+              "value": "={{ $('Webhook').item.json.body.From }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $json.cartMessage }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3712,
+        -240
+      ],
+      "id": "d409a9ff-ce31-48e4-84b3-e3b1f9539a84",
+      "name": "Send Cart Confirmation",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $json.message;\nconst userId = $json.userId;\nconst userPhone = $json.userPhone;\n\n// Extract item name after \"remove:\"\nconst itemToRemove = message.substring(7).trim();\n\nif (!itemToRemove || itemToRemove.length < 2) {\n  return {\n    json: {\n      error: true,\n      userId: userId,\n      userPhone: userPhone,\n      errorMessage: \"❌ Please specify item name\\n\\nExample:\\nremove: Paneer Tikka\"\n    }\n  };\n}\n\nreturn {\n  json: {\n    userId: userId,\n    userPhone: userPhone,\n    itemToRemove: itemToRemove\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        512
+      ],
+      "id": "f75334fd-d716-4c39-90b8-2da971cb98e1",
+      "name": "Parse Remove Command"
+    },
+    {
+      "parameters": {
+        "jsCode": "const userId = $json.userId;\nconst userPhone = $json.userPhone;\nconst itemToRemove = $json.itemToRemove.toLowerCase();\n\nconst cartKey = `cart_${userId}`;\n\n// Check cart exists\nif (typeof global[cartKey] === 'undefined') {\n  return {\n    json: {\n      userId: userId,\n      userPhone: userPhone,\n      message: \"🛒 Your cart is empty!\"\n    }\n  };\n}\n\n// Find and remove item\nconst cart = global[cartKey];\nconst initialLength = cart.items.length;\n\ncart.items = cart.items.filter(item => \n  !item.itemName.toLowerCase().includes(itemToRemove)\n);\n\nconst removed = initialLength - cart.items.length;\n\nif (removed === 0) {\n  return {\n    json: {\n      userId: userId,\n      userPhone: userPhone,\n      message: `❌ Item \"${itemToRemove}\" not found in cart\\n\\nType *cart* to see items`\n    }\n  };\n}\n\nreturn {\n  json: {\n    userId: userId,\n    userPhone: userPhone,\n    removed: removed,\n    message: `✅ Removed \"${itemToRemove}\" from cart\\n\\nType *cart* to view updated cart`\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        512
+      ],
+      "id": "243fee53-b719-480e-be55-46e4f74f21a7",
+      "name": "Remove from Temp Cart"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "={{ $('Webhook').item.json.body.From }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $json.message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1760,
+        512
+      ],
+      "id": "180b51ad-82d5-45d8-b14a-ed36988ccc58",
+      "name": "Send Remove Confirmation",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const userId = $json.userId;\nconst userPhone = $json.userPhone;\n\nconst cartKey = `cart_${userId}`;\n\n// Delete cart\nif (typeof global[cartKey] !== 'undefined') {\n  delete global[cartKey];\n}\n\nreturn {\n  json: {\n    userId: userId,\n    userPhone: userPhone,\n    message: \"✅ Cart cleared successfully!\\n\\nType *menu* to start fresh.\"\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1312,
+        720
+      ],
+      "id": "5e09b9be-f209-49eb-874e-104dde9004be",
+      "name": "Clear Temp Cart"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "=whatsapp:{{ $json.userPhone }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $json.message }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1520,
+        720
+      ],
+      "id": "fcf42ba9-2f72-48f5-a901-1890e5ee4a41",
+      "name": "HTTP Request2",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get ALL incoming rows (your array of cart items)\nconst rows = $input.all().map(i => i.json);\n\n// If no items, return empty cart\nif (!rows.length) {\n  return [\n    {\n      json: {\n        userId: null,\n        userPhone: null,\n        items: [],\n        subtotal: 0,\n        tax: 0,\n        total: 0,\n        isEmpty: true\n      }\n    }\n  ];\n}\n\nlet subtotal = 0;\n\n// Format items\nconst cartItems = rows.map(row => {\n  const name = row.itemName || \"Unknown\";\n  const qty = Number(row.quantity) || 0;\n  const price = Number(row.itemPrice) || 0;\n  const lineTotal = qty * price;\n\n  subtotal += lineTotal;\n\n  return {\n    item_name: name,\n    quantity: qty,\n    price: price,\n    total: lineTotal\n  };\n});\n\nconst tax = subtotal * 0.05;\nconst total = subtotal + tax;\n\nreturn [\n  {\n    json: {\n      userId: rows[0].userId,\n      userPhone: rows[0].userPhone || null,\n      items: cartItems,\n      subtotal,\n      tax,\n      total,\n      isEmpty: false\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        16
+      ],
+      "id": "c2976dde-5e12-4a77-86b8-481841504626",
+      "name": "Get Cart for Order"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').item.json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "={{ $('Webhook').item.json.body.From }}"
+            },
+            {
+              "name": "=Body",
+              "value": "❌ Cart is empty!\n\nAdd items first:\nadd: Item Name Quantity"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2336,
+        272
+      ],
+      "id": "d711a690-d2fb-441e-a2ea-292bfeac184d",
+      "name": "Empty Cart Error for Order",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6db1d509-54ef-4ae5-b6df-f74d05807f5b",
+              "leftValue": "={{ $json.isEmpty }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1936,
+        240
+      ],
+      "id": "35d3cde6-0f82-4b8a-add1-5c2a5e3c2ef6",
+      "name": "Cart Not Empty?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $json.items;\nlet summary = \"🧾 *Order Summary*\\n\\n\";\n\nitems.forEach((i, index) => {\n  summary += `${index + 1}. *${i.item_name}*\\n   ${i.quantity} × ₹${i.price} = ₹${i.total}\\n\\n`;\n});\n\nsummary += `Subtotal: ₹${$json.subtotal}\\n`;\nsummary += `GST (5%): ₹${$json.tax}\\n`;\nsummary += `*Total: ₹${$json.total}*\\n\\n`;\nsummary += \"Generating your bill...\";\n\nreturn {\n  json: {\n    ...$json,\n    summary,\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2096,
+        464
+      ],
+      "id": "a702a95e-66c9-46b9-9053-ccf6fc998c75",
+      "name": "Format Order Summary"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').first().json.body.AccountSid }}\n/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "={{ $('Webhook').last().json.body.From }}"
+            },
+            {
+              "name": "Body",
+              "value": "={{ $('Format Order Summary').item.json.summary }}"
+            },
+            {
+              "name": "=MediaUrl",
+              "value": "={{ $json.url }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2720,
+        464
+      ],
+      "id": "b4e46dac-bf20-40b7-b344-ca0d423bff6a",
+      "name": "Send Bill",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://hotel-bot-menu-ecbo707xh-vamsis-projects-b5c6d838.vercel.app/api/bill",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  items: $json.items,\n  subtotal: $json.subtotal,\n  tax: $json.tax,\n  total: $json.total,\n  userId: $json.userId\n}) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2304,
+        464
+      ],
+      "id": "662fbcc6-76f8-4dbf-8e4e-e3dfc42fe61e",
+      "name": "Generate Bill Image"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').first().json.body.AccountSid }}\n/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "={{ $('Webhook').last().json.body.From }}"
+            },
+            {
+              "name": "Body",
+              "value": "=🎉 *Your order is ready!*\n\nPlease make the payment to confirm your order.\n\n💵 *Amount:* ₹{{ $('Format Order Summary').item.json.total }}\n\nReply with *paid* after completing the payment.\n\nThank you for choosing us! ❤️\n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        3136,
+        464
+      ],
+      "id": "29651117-3a6a-4d63-93d8-2c650734ea76",
+      "name": "Send Order Confirmation",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "value": "D4j3L4Fr4GC5088G",
+          "mode": "list",
+          "cachedResultName": "cart_store",
+          "cachedResultUrl": "/projects/rPZ5wGgkZDV7wICM/datatables/D4j3L4Fr4GC5088G"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            },
+            {
+              "keyName": "itemId",
+              "keyValue": "={{ $json.itemId }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "itemPrice": "={{ $json.itemPrice }}",
+            "quantity": "={{ $json.quantity }}",
+            "userId": "={{ $json.userId }}",
+            "itemId": "={{ $json.itemId }}",
+            "itemName": "={{ $json.itemName }}",
+            "addedAt": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "itemId",
+              "displayName": "itemId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "itemName",
+              "displayName": "itemName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "itemPrice",
+              "displayName": "itemPrice",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "quantity",
+              "displayName": "quantity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "addedAt",
+              "displayName": "addedAt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2592,
+        -240
+      ],
+      "id": "27c74493-76f2-4dea-9d2f-9c08fdc65215",
+      "name": "Upsert row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "D4j3L4Fr4GC5088G",
+          "mode": "list",
+          "cachedResultName": "cart_store",
+          "cachedResultUrl": "/projects/rPZ5wGgkZDV7wICM/datatables/D4j3L4Fr4GC5088G"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            }
+          ]
+        },
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1088,
+        272
+      ],
+      "id": "84342639-a066-427a-8a43-4f95dfcd8095",
+      "name": "Get row(s)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all().map(i => i.json);\n\nif (items.length === 0) {\n  return [{ json: { isEmpty: true }}];\n}\n\nlet subtotal = 0;\n\nitems.forEach(item => {\n  item.total = item.quantity * item.itemPrice;\n  subtotal += item.total;\n});\n\nconst tax = subtotal * 0.05;\nconst total = subtotal + tax;\n\nreturn [\n  {\n    json: {\n      userId: items[0].userId,\n      items,\n      subtotal,\n      tax,\n      total,\n      isEmpty: false\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1328,
+        320
+      ],
+      "id": "a0b581c1-6641-4fc6-adf0-7098f24e05f2",
+      "name": "Cart Calculator"
+    },
+    {
+      "parameters": {
+        "operation": "deleteRows",
+        "dataTableId": {
+          "__rl": true,
+          "value": "D4j3L4Fr4GC5088G",
+          "mode": "list",
+          "cachedResultName": "cart_store",
+          "cachedResultUrl": "/projects/rPZ5wGgkZDV7wICM/datatables/D4j3L4Fr4GC5088G"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "userId",
+              "keyValue": "={{ $json.userId }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        2928,
+        464
+      ],
+      "id": "00385e17-e115-421d-934f-8efb96df34eb",
+      "name": "Delete row(s)",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Your actual items are inside: $json.data\nconst rows = $json.data || [];\n\n// If no rows found\nif (!rows.length) {\n  return [\n    {\n      json: {\n        isEmpty: true,\n        items: [],\n        subtotal: 0,\n        tax: 0,\n        total: 0\n      }\n    }\n  ];\n}\n\nlet subtotal = 0;\n\n// Build items\nconst items = rows.map(row => {\n  const name = row.itemName || \"Unknown Item\";\n  const qty = Number(row.quantity) || 0;\n  const price = Number(row.itemPrice) || 0;\n  const lineTotal = qty * price;\n\n  subtotal += lineTotal;\n\n  return {\n    itemName: name,\n    quantity: qty,\n    price,\n    total: lineTotal\n  };\n});\n\n// Totals\nconst tax = subtotal * 0.05;\nconst finalTotal = subtotal + tax;\n\n// Output single cart object\nreturn [\n  {\n    json: {\n      userId: rows[0].userId,\n      userPhone: rows[0].userPhone || null,\n      items,\n      subtotal,\n      tax,\n      total: finalTotal,\n      isEmpty: false\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3296,
+        -240
+      ],
+      "id": "1f04307f-d171-4752-80b4-082e62673680",
+      "name": "Get Cart from Temp Storage"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "D4j3L4Fr4GC5088G",
+          "mode": "list",
+          "cachedResultName": "cart_store",
+          "cachedResultUrl": "/projects/rPZ5wGgkZDV7wICM/datatables/D4j3L4Fr4GC5088G"
+        },
+        "matchType": "allConditions"
+      },
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1,
+      "position": [
+        1008,
+        16
+      ],
+      "id": "864a5e83-e949-4b7b-b7d9-b82c6aa51136",
+      "name": "Get rows for order"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "ec9TZbWGaB83dPet",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/ec9TZbWGaB83dPet",
+          "cachedResultName": "Review Sender Workflow"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "userId": "={{ $('Code in JavaScript').first().json.userId }}",
+            "total": "={{ $('Format Order Summary').item.json.total }}",
+            "userPhone": "={{ $('Code in JavaScript').first().json.userPhone }}\n",
+            "userName": "={{ $('Code in JavaScript').first().json.userName }}",
+            "orderId": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [
+            "userId"
+          ],
+          "schema": [
+            {
+              "id": "userId",
+              "displayName": "userId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "userPhone",
+              "displayName": "userPhone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "userName",
+              "displayName": "userName",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "total",
+              "displayName": "total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number",
+              "removed": false
+            },
+            {
+              "id": "orderId",
+              "displayName": "orderId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": true,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": false
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3312,
+        464
+      ],
+      "id": "16bd9a8a-727c-466d-8b6d-fddabfdc0f2c",
+      "name": "Call 'Review Sender Workflow'"
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $json.message;\nconst rating = message.replace('rate:', '').trim();\nconst ratingNum = parseInt(rating);\n\nif (ratingNum < 1 || ratingNum > 5) {\n  return {\n    json: {\n      error: true,\n      errorMessage: \"❌ Please rate between 1-5\"\n    }\n  };\n}\n\nreturn {\n  json: {\n    userId: $json.userId,\n    userPhone: $json.userPhone,\n    userName: $json.userName,\n    rating: ratingNum,\n    feedback: \"\",\n    timestamp: new Date().toISOString(),\n    error: false\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        928
+      ],
+      "id": "3b030de8-989e-4a35-bcf8-aadd70465870",
+      "name": "Parse Rating"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "70a39a85-132a-41aa-b1c4-1402a7949c2b",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1472,
+        928
+      ],
+      "id": "01c08769-770a-4be1-a0ff-654525c1876d",
+      "name": "Check Error"
+    },
+    {
+      "parameters": {
+        "jsCode": "const message = $json.message;\nconst feedback = message.replace('feedback:', '').trim();\n\nif (!feedback || feedback.length < 5) {\n  return {\n    json: {\n      error: true,\n      errorMessage: \"❌ Please provide detailed feedback (min 5 characters)\"\n    }\n  };\n}\n\nreturn {\n  json: {\n    userId: $json.userId,\n    userPhone: $json.userPhone,\n    userName: $json.userName,\n    rating: 0,\n    feedback: feedback,\n    timestamp: new Date().toISOString(),\n    error: false\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1264,
+        1232
+      ],
+      "id": "4f127d21-1311-405e-9c82-3272a0badb38",
+      "name": "Parse Feedback"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "upsert",
+        "workbook": {
+          "__rl": true,
+          "value": "=1A4C5DB3E5BCEEA!s7d871bf5474e4c15827c0310fdeba5f1",
+          "mode": "id"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://onedrive.live.com/personal/01a4c5db3e5bceea/_layouts/15/doc.aspx?resid=f3a53fcc-0072-4712-baf4-3c25ad8f2acd&cid=01a4c5db3e5bceea&activeCell=Sheet1!A1"
+        },
+        "columnToMatchOn": "UserID",
+        "valueToMatchOn": "={{ $json.data[0][0] }}",
+        "fieldsUi": {
+          "values": [
+            {
+              "column": "Feedback",
+              "fieldValue": "={{ $json.data[0][4] }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1888,
+        1328
+      ],
+      "id": "90dd8beb-c258-458b-8d77-bd518279d684",
+      "name": "Append or update a sheet1",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "KTrV0CT0OivVJdNM",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').first().json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "={{ $('Webhook').last().json.body.From }}"
+            },
+            {
+              "name": "Body",
+              "value": "=  ⭐ Thank you for your {{ $json.Rating }}-star rating!      We appreciate your feedback and hope to serve you again soon! 🙏"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2192,
+        1008
+      ],
+      "id": "0b02d9a4-b91c-4bba-8425-97e9001736a6",
+      "name": "Thank You Message",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.twilio.com/2010-04-01/Accounts/{{ $('Webhook').first().json.body.AccountSid }}/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "={{ $('Webhook').last().json.body.From }}"
+            },
+            {
+              "name": "Body",
+              "value": "=Thank you for your feedback! 🍽️✨\nWe appreciate your support and hope to serve you again soon"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2096,
+        1328
+      ],
+      "id": "a5314db3-c0bc-4f8c-b0e8-fbd1a54e0505",
+      "name": "Thank You Message1",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b47d2132-38ff-49ee-80aa-bffc70449b59",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1488,
+        1312
+      ],
+      "id": "f99da035-71ce-4627-a7ad-1962f16d6ff7",
+      "name": "Check Error1"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input data\nconst input = $input.item.json;\n\n// Format as array of arrays (row format)\nconst excelRow = [\n  [\n    input.userId || \"\",\n    input.userName || \"\",\n    input.userPhone || \"\",\n    input.rating ? input.rating.toString() : \"\",\n    input.feedback || \"\",\n    input.timestamp || \"\"\n  ]\n];\n\nreturn {\n  json: {\n    data: excelRow\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        992
+      ],
+      "id": "c5684393-287a-463a-8ea8-47621a8452e9",
+      "name": "Format for Excel"
+    },
+    {
+      "parameters": {
+        "resource": "worksheet",
+        "operation": "append",
+        "workbook": {
+          "__rl": true,
+          "value": "=1A4C5DB3E5BCEEA!s7d871bf5474e4c15827c0310fdeba5f1",
+          "mode": "id"
+        },
+        "worksheet": {
+          "__rl": true,
+          "value": "{00000000-0001-0000-0000-000000000000}",
+          "mode": "list",
+          "cachedResultName": "Sheet1"
+        },
+        "fieldsUi": {
+          "values": [
+            {
+              "column": "UserID",
+              "fieldValue": "={{ $json.data[0][0] }}"
+            },
+            {
+              "column": "UserName",
+              "fieldValue": "={{ $json.data[0][1] }}"
+            },
+            {
+              "column": "Phone",
+              "fieldValue": "={{ $json.data[0][2] }}"
+            },
+            {
+              "column": "Rating",
+              "fieldValue": "={{ $json.data[0][3] }}"
+            },
+            {
+              "column": "Feedback",
+              "fieldValue": "={{ $json.data[0][4] }}"
+            },
+            {
+              "column": "Timestamp",
+              "fieldValue": "={{ $json.data[0][5] }}"
+            }
+          ]
+        },
+        "options": {
+          "rawData": false
+        }
+      },
+      "type": "n8n-nodes-base.microsoftExcel",
+      "typeVersion": 2.2,
+      "position": [
+        1872,
+        992
+      ],
+      "id": "37f90729-1c5a-40b2-bebc-0a4543cb26f7",
+      "name": "Append data to sheet",
+      "credentials": {
+        "microsoftExcelOAuth2Api": {
+          "id": "KTrV0CT0OivVJdNM",
+          "name": "Microsoft Excel account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get input data\nconst input = $input.item.json;\n\n// Format as array of arrays (row format)\nconst excelRow = [\n  [\n    input.userId || \"\",\n    input.userName || \"\",\n    input.userPhone || \"\",\n    input.rating ? input.rating.toString() : \"\",\n    input.feedback || \"\",\n    input.timestamp || \"\"\n  ]\n];\n\nreturn {\n  json: {\n    data: excelRow\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1696,
+        1328
+      ],
+      "id": "83726dd8-91e5-4c34-bc17-e198dd430e5e",
+      "name": "Format for Excel1"
+    },
+    {
+      "parameters": {
+        "content": "## #\nwhile working with microsoft excel load the workbook by it .For the id get url after opening it in microsot cloud 365 and open the exceel sheet . The id is  value after docId"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1792,
+        816
+      ],
+      "typeVersion": 1,
+      "id": "1fa84f47-39d9-40cc-81da-2145db6b3bc8",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "While using whatspp message via twilio you mut use Body content type as form url encoded in http request while posting"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        32,
+        -384
+      ],
+      "typeVersion": 1,
+      "id": "4a8c6571-e4c7-4004-bbcd-8b57b77a977e",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "welcome message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Show menu category",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Add Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get rows for order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Remove Command",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Clear Temp Cart",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Rating",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse Feedback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "welcome message": {
+      "main": [
+        []
+      ]
+    },
+    "Show menu category": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Add Command": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send Parse Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Split Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Items": {
+      "main": [
+        [
+          {
+            "node": "Find Menu Item in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Menu Item in Supabase": {
+      "main": [
+        [
+          {
+            "node": "Item Found?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Item Found?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Cart Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Item Not Found Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Cart Data": {
+      "main": [
+        [
+          {
+            "node": "Upsert row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait for All Items": {
+      "main": [
+        [
+          {
+            "node": "Get Cart from Temp Storage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Cart Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Send Cart Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Remove Command": {
+      "main": [
+        [
+          {
+            "node": "Remove from Temp Cart",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove from Temp Cart": {
+      "main": [
+        [
+          {
+            "node": "Send Remove Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear Temp Cart": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Cart for Order": {
+      "main": [
+        [
+          {
+            "node": "Cart Not Empty?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cart Not Empty?": {
+      "main": [
+        [
+          {
+            "node": "Empty Cart Error for Order",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Format Order Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Order Summary": {
+      "main": [
+        [
+          {
+            "node": "Generate Bill Image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Bill Image": {
+      "main": [
+        [
+          {
+            "node": "Send Bill",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Bill": {
+      "main": [
+        [
+          {
+            "node": "Delete row(s)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert row(s)": {
+      "main": [
+        [
+          {
+            "node": "Wait for All Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s)": {
+      "main": [
+        [
+          {
+            "node": "Cart Calculator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete row(s)": {
+      "main": [
+        [
+          {
+            "node": "Send Order Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Cart from Temp Storage": {
+      "main": [
+        [
+          {
+            "node": "Format Cart Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get rows for order": {
+      "main": [
+        [
+          {
+            "node": "Get Cart for Order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Order Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Call 'Review Sender Workflow'",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Rating": {
+      "main": [
+        [
+          {
+            "node": "Check Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Error": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Format for Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Feedback": {
+      "main": [
+        [
+          {
+            "node": "Check Error1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update a sheet1": {
+      "main": [
+        [
+          {
+            "node": "Thank You Message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Error1": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Format for Excel1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format for Excel": {
+      "main": [
+        [
+          {
+            "node": "Append data to sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append data to sheet": {
+      "main": [
+        [
+          {
+            "node": "Thank You Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format for Excel1": {
+      "main": [
+        [
+          {
+            "node": "Append or update a sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": true
+  },
+  "versionId": "91d2fc4a-9860-4a6b-9d72-1e7b507d0e09",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "149a5fcb533d384cdd3b563d7ebf7b476beb35e89263a37ac9e467e5a10c8b96"
+  },
+  "id": "GNGQQpAlpTIge8yw",
+  "tags": [
+    {
+      "updatedAt": "2025-12-11T07:45:13.824Z",
+      "createdAt": "2025-12-11T07:45:13.824Z",
+      "id": "GzklTksvphkPgr3n",
+      "name": "bot"
+    },
+    {
+      "updatedAt": "2025-12-11T07:45:32.579Z",
+      "createdAt": "2025-12-11T07:45:32.579Z",
+      "id": "e2lHFE9xm0YiSRQT",
+      "name": "hotel-bot"
+    },
+    {
+      "updatedAt": "2025-12-11T07:45:44.686Z",
+      "createdAt": "2025-12-11T07:45:44.686Z",
+      "id": "Dt7nKFLouZVtJCoU",
+      "name": "automation"
+    }
+  ]
+}

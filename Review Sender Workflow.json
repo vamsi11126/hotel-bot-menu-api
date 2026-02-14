@@ -1,0 +1,129 @@
+{
+  "name": "Review Sender Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "userId"
+            },
+            {
+              "name": "userPhone",
+              "type": "number"
+            },
+            {
+              "name": "userName"
+            },
+            {
+              "name": "total",
+              "type": "number"
+            },
+            {
+              "name": "orderId",
+              "type": "any"
+            }
+          ]
+        }
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        688,
+        352
+      ],
+      "id": "a091cb90-4522-4176-b503-a6cb4db374d5",
+      "name": "Wait",
+      "webhookId": "e4581e18-6a72-43a9-b7ad-560d0b2019ba"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.twilio.com/2010-04-01/Accounts/AC0fd7e8be156d564ed3c25a0614d9a7a3/Messages.json",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBasicAuth",
+        "sendBody": true,
+        "contentType": "form-urlencoded",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "From",
+              "value": "whatsapp:+14155238886"
+            },
+            {
+              "name": "To",
+              "value": "whatsapp:+919014697300"
+            },
+            {
+              "name": "Body",
+              "value": "=🌟 *How was your experience at Hotel Paradise?*     \nHi {{ $json.userName }}👋     \nWe hope you enjoyed your order (₹{{ $json.total }})  \nPlease rate your experience:\nReply with:     \n⭐ *rate: 1* - Poor     \n⭐⭐ *rate: 2* - Fair\n⭐⭐⭐ *rate: 3* - Good \n⭐⭐⭐⭐ *rate: 4* - Very Good\n⭐⭐⭐⭐⭐ *rate: 5* - Excellent      \n💬 Or share detailed feedback:     \n*feedback: Your comments here*      \nYour feedback helps us improve! ❤️"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        896,
+        352
+      ],
+      "id": "b76af4da-18c6-42d8-badf-ffca1185e8f8",
+      "name": "Send Review Form",
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "2TXs8I6TUXxwc8AJ",
+          "name": "twilio"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Send Review Form",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5b7dd0d4-2af0-45c8-891a-9943ddc1fc44",
+  "meta": {
+    "instanceId": "149a5fcb533d384cdd3b563d7ebf7b476beb35e89263a37ac9e467e5a10c8b96"
+  },
+  "id": "ec9TZbWGaB83dPet",
+  "tags": []
+}
